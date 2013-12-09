@@ -73,6 +73,7 @@ package scaleform.clik.controls {
     import flash.events.Event;
     import flash.events.MouseEvent;
     import flash.events.TimerEvent;
+	import flash.events.TouchEvent;
     import flash.text.TextField;
     import flash.text.TextFieldAutoSize;
     import flash.text.TextFormat;
@@ -429,6 +430,12 @@ package scaleform.clik.controls {
             addEventListener(MouseEvent.CLICK, handleMouseRelease, false, 0, true);
             addEventListener(MouseEvent.DOUBLE_CLICK, handleMouseRelease, false, 0, true);
             addEventListener(InputEvent.INPUT, handleInput, false, 0, true);
+			
+			//also addTouchBegin as MouseDown.
+			addEventListener(TouchEvent.TOUCH_BEGIN,handleTouchBegin, false, 0, true);
+			addEventListener(TouchEvent.TOUCH_END,handleTouchEnd, false, 0, true);
+			//addEventListener(TouchEvent.TOUCH_TAP, handleTouchBegin, false, 0, true);
+			//not sure it works or not by cnsoft 2013-12-08
             
             //LM: Consider moving to showFocus() or something similar.
             if (_focusIndicator != null && !_focused && _focusIndicator.totalFrames == 1) { focusIndicator.visible = false; }
@@ -579,6 +586,7 @@ package scaleform.clik.controls {
         // Mouse-only input
         /** @private */
         protected function handleMouseRollOver(event:MouseEvent):void {
+			//trace("handle MouseRollover");
             var sfEvent:MouseEventEx = event as MouseEventEx;
             var mouseIdx:uint = (sfEvent == null) ? 0 : sfEvent.mouseIdx;
             
@@ -609,6 +617,7 @@ package scaleform.clik.controls {
         
         /** @private */
         protected function handleMouseRollOut(event:MouseEvent):void {
+			//trace("handle MouseRollOut");
             var sfEvent:MouseEventEx = event as MouseEventEx;
             var index:uint = (sfEvent == null) ? 0 : sfEvent.mouseIdx;
             
@@ -640,9 +649,51 @@ package scaleform.clik.controls {
                 }
             }
         }
+		
+		var touched = false;
+		function handleTouchBegin(event:TouchEvent):void {
+			//convert touch to mouse 
+			//trace("handle TouchBegin");
+			var sfEvent:MouseEventEx = new MouseEventEx(MouseEvent.MOUSE_DOWN);
+			sfEvent.mouseIdx = 0;
+			sfEvent.buttonIdx = 0;
+			this.dispatchEvent(sfEvent);
+			if(!_repeatTimer)  //make sure repeatWorks.
+			{
+				_repeatTimer = new Timer(repeatDelay, 1);
+                _repeatTimer.addEventListener(TimerEvent.TIMER_COMPLETE, beginRepeat, false, 0, true);
+                _repeatTimer.start();
+			}
+			this.touched = true;
+		}
+		
+		function handleTouchEnd(event:TouchEvent):void {
+			//trace("handle TouchEnd"+" primary?" + event.isPrimaryTouchPoint );
+			//trace("event: "+ event.touchPointID );
+			
+			this.touched = false; //avoid clear by others?
+			
+			var sfEvent:MouseEventEx = new MouseEventEx(MouseEvent.CLICK);
+			sfEvent.mouseIdx = 0;
+			sfEvent.buttonIdx = 0;
+			this.dispatchEvent(sfEvent);
+			
+			//Ensure no repeatTimer.. by cnsoft
+			//When 1 mouse is clicked, have to use this trigger event.
+			//If we can check how much touchs exist. we can avoid one touch  duplicated event issue.
+			if(_repeatTimer)
+			{
+				_repeatTimer.stop(); _repeatTimer.reset();
+                _repeatTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, beginRepeat);
+                _repeatTimer.removeEventListener(TimerEvent.TIMER, handleRepeat);
+                _repeatTimer = null; //LM: Consider leaving in memory.
+			}
+			
+		}
         
         /** @private */
         protected function handleMousePress(event:MouseEvent):void {
+			//trace("handle MousePress "+ event.type);
             var sfEvent:MouseEventEx = event as MouseEventEx;
             var mouseIdx:uint = (sfEvent == null) ? 0 : sfEvent.mouseIdx; // index of Mouse that generated event.
             var btnIdx:uint = (sfEvent == null) ? 0 : sfEvent.buttonIdx; // index of Button of Mouse that generated event.
@@ -666,8 +717,11 @@ package scaleform.clik.controls {
             }
         }
         
+		var lastClickTime:int =0;
+		
         /** @private */
         protected function handleMouseRelease(event:MouseEvent):void {
+			//trace("handle MouseRelease "+event.type);
             _autoRepeatEvent = null;
             if (!enabled) { return; }
             var sfEvent:MouseEventEx = event as MouseEventEx;
@@ -678,7 +732,7 @@ package scaleform.clik.controls {
             _mouseDown ^= 1 << mouseIdx;
             
             // Always remove timer, in case autoRepeat was turned off during press.
-            if (_mouseDown == 0 && _repeatTimer) {
+            if (_mouseDown == 0 && _repeatTimer && !this.touched) {
                 _repeatTimer.stop(); _repeatTimer.reset();
                 _repeatTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, beginRepeat);
                 _repeatTimer.removeEventListener(TimerEvent.TIMER, handleRepeat);
@@ -688,9 +742,10 @@ package scaleform.clik.controls {
             setState("release");
             handleClick(mouseIdx);
             
-            if (!_isRepeating) {
+            if (!_isRepeating && ( getTimer() - this.lastClickTime  > 10 ) ) {
                 var sfButtonEvent:ButtonEvent = new ButtonEvent(ButtonEvent.CLICK, true, false, mouseIdx, btnIdx, false, false);
                 dispatchEventAndSound(sfButtonEvent);
+				this.lastClickTime = getTimer();
             }
             
             _isRepeating = false;
@@ -698,7 +753,9 @@ package scaleform.clik.controls {
         
         /** @private */
         protected function handleReleaseOutside(event:MouseEvent):void {
-            _autoRepeatEvent = null;
+			//trace("handle MouseReleaseOutside");
+			if (!this.touched) //if touched it will be released by itself.
+            	_autoRepeatEvent = null;
             if (contains(event.target as DisplayObject)) { return; }
             
             var sfEvent:MouseEventEx = event as MouseEventEx;
