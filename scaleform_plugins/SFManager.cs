@@ -1095,6 +1095,12 @@ public partial class SFManager
 #endif
         bool handled = false;
 
+		//EasyTouch also ?
+		//SFCamera.Hited = handled;
+		//Add Special Check
+		SFCamera.Hited = this.DoHitTest( ev.mousePosition.x,ev.mousePosition.y);	
+		//done! - cnsoft
+
 		for (int i = 0; i < SFMovieList.Count; i++)
 		{
 			// Movies can set breturnOnHandled to true if they don't want other movies to process the event further

@@ -50,6 +50,9 @@ public class SFCamera : MonoBehaviour
     protected SFGamepad GamePad;
 
     protected bool      GamepadConnected;
+    
+    //add hacked for easytouch click through by cnsoft 
+    public static bool Hited = false;
 
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR
     [DllImport("libgfxunity3d")]
