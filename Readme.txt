@@ -9,4 +9,4 @@ Maybe you will got same issue. so i share it with you.
 
 by cnsoft # gmail.com  2013-12
 Home: http://blog.donews.com/cnsoft  
-  
+Weibo: http://weibo.com/cnsoft360  
