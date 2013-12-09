@@ -3,6 +3,7 @@
   how to resolve: implement your customize function to handle touchbegin touchend touchmove of your ui component. in here, to avoid too much exist code be changed or affected, i hacked scaleform click library souce code to implement it works both. you need download Scaleform 4.2 for Unity plugin first.
   here only a patched Button.as file.
 
+Using Unity touch events with Scaleform
 
 2.EasyTouch will click through when it work together with scaleform. 
   reproduce step: add easyjoystick and scaleform button together into scene. after build, when you click scaleform button, you will see the easyjoystick is also displayed. i named it as Click-through issue. 
