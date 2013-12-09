@@ -1,0 +1,10 @@
+1.Scaleform 4.2 not works on ios device for second button (repeated) be pressed. first repeated button works. 
+  reproduce step: build for ios . run on ios. click blank area of screen, you click any button, but no button.click event is triggered. 
+  how to resolve: implement your customize function to handle touchbegin touchend touchmove of your ui component. in here, to avoid too much exist code be changed or affected, i hacked scaleform click library souce code to implement it works both. you need download Scaleform 4.2 for Unity plugin first.
+  here only a patched Button.as file.
+
+
+2.EasyTouch will click through when it work together with scaleform. 
+  reproduce step: add easyjoystick and scaleform button together into scene. after build, when you click scaleform button, you will see the easyjoystick is also displayed. i named it as Click-through issue. 
+  how to fix it: after i read easy touch code, i noticed that easytouch has an option named NGUI enabled?? . so i have this idea to fix this issue. 
+  
