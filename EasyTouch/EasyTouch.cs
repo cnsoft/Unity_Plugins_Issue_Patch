@@ -1372,12 +1372,7 @@ public class EasyTouch : MonoBehaviour {
 			}
 
 		}
-		if (SFCamera.Hited)//HackCode. by cnsoft to solve EasyTouch Click Through issue. 
-		//yous hould set NGUI enabled 
-		{
-			returnValue = true;
-			UnityEngine.Debug.Log(" onCheck IsTouchOverNGUI "+ returnValue);
-		}
+		
 		return returnValue;
 	
 	}
